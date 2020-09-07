@@ -1,0 +1,66 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient; //sql kütüphanesine bağlanıyoruz
+
+
+namespace database1
+{
+    public partial class Form1 : Form
+    {
+        SqlConnection baglanti;//sql veritabanına bağlantı kurmak için kullanılacak olduğumuz sınıfımız*/
+        SqlCommand komut;//veritabanı üzerinde sorgulama, ekleme, güncelleme, silme işlemlerini yapmak için kullanılmaktadır*
+        SqlDataAdapter da;//sir SQL Server veritabanını doldurup güncelleştirmek için kullanılır devamında göreceğimiz da.fill(tablo) kodu da bu yüzden uygulanmıstır*/ 
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        void MusteriGetir()// musterigetir metodu olusturuyoruz programın ilerleyen safhalarında kullanacağız*/
+        {
+            baglanti = new SqlConnection("server=.;Initial Catalog=ticaret;Integrated Security=SSPI");//bilgisayarımızda,sunucumuzda bulunan sql serverla bağlantı oluşturuyoruz*/
+            baglanti.Open();//Open metodu ile oluşturduğumuz iletişim hattını kullanıma açıyoruz */
+            da = new SqlDataAdapter("SELECT *FROM musteri", baglanti);//bilgisayarımızda kayıtlı olan db'ye bağlanıyoruz*/
+            DataTable tablo = new DataTable();//tablo olusturuyoruz*/
+            da.Fill(tablo);//olusturdugumuz tabloya verilerin eklenmesini sağlıyoruz*/
+           dataGridView1.DataSource = tablo;//pencere uygulamamızda verilerin yansımasını sağlıyoruz*/
+            baglanti.Close();//baglantıyı kapatıyoruz*/
+
+        }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            MusteriGetir();//müsterigetir adı altında bir metod oluşturuyoruz*/
+        }
+
+        private void dataGridView1_CellEnter(object sender, DataGridViewCellEventArgs e)
+        {
+            txtNo.Text = dataGridView1.CurrentRow.Cells[0].Value.ToString();//db üzerindeki verilerin uygun diziye dönüştürülüp uygun yere yazılmasını sağlıyoruz*/
+            txtAd.Text = dataGridView1.CurrentRow.Cells[1].Value.ToString();
+            txtSoyad.Text = dataGridView1.CurrentRow.Cells[2].Value.ToString();
+            dateTimePicker1.Text = dataGridView1.CurrentRow.Cells[3].Value.ToString();
+            txtTelefon.Text = dataGridView1.CurrentRow.Cells[4].Value.ToString();
+        }
+
+        private void btnEkle_Click(object sender, EventArgs e)//Form üzerindeki EKLE butonunu biçimlendireceğiz*/
+        {
+            string sorgu = "INSERT INTO musteri(ad,soyad,dtarih,tel) VALUES (@ad,@soyad,@dtarih,@tel)";//Sorgu metodu altında Db kodlarını kullanarak ekle butonunun çalışma kayıt almasını sağlıyoruz*/ 
+            komut = new SqlCommand(sorgu, baglanti);//Sorgu ve bağlantı metodlarının Komut adı altında birlikte calısmasını sağlıyoruz*/
+            komut.Parameters.AddWithValue("@ad", txtAd.Text);//AddWithValue Kullandığımızda parametreye atadığımız değer SQL Server tarafından uygun tipe dönüştürülüyor*/
+            komut.Parameters.AddWithValue("@Soyad", txtSoyad.Text);
+            komut.Parameters.AddWithValue("@dtarih", dateTimePicker1.Value);
+            komut.Parameters.AddWithValue("@tel", txtTelefon.Text);
+            baglanti.Open();
+            komut.ExecuteNonQuery();//Form üzerinde ekleme yaptığımız zaman ekledğimiz verilerin Db üzerinde kaydolmasını sağlar*/
+            baglanti.Close();
+            MusteriGetir();//yaptığımız işlemin kaydolması ve form üzerinde gözükmesi için en başta eklediğimiz müsterigetir metodunu kullanıyoruz*/
+
+        }
+    }
+}
